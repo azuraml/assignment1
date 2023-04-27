@@ -49,6 +49,7 @@ app.use(session({
 ));
 
 app.get('/', (req,res) => {
+
     res.send("<h1>Hello World!</h1>");
 });
 
@@ -210,6 +211,9 @@ app.get('/loggedin', (req,res) => {
     `;
     res.send(html);
 });
+
+
+
 
 app.get('/logout', (req,res) => {
 	req.session.destroy();

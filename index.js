@@ -49,19 +49,19 @@ app.use(session({
 ));
 
 app.get('/', (req,res) => {
-    res.send("<h1>Hello World!</h1>");
-});    //do not need this as home page 
+//     res.send("<h1>Hello World!</h1>");
+// });    //do not need this as home page 
 
 // app.get('/', (req,res) => {
 //     //    if (!req.send.session.authenticated) {
-//         var html = `
-//         Welcome
-//         <div><a href="/signup">Sign Up</a></div>
-//         <div><a href="/login">Log In</a></div>
-//     `;
-//     res.send(html);
-//     return;
-//     }
+        var html = `
+        Welcome
+        <div><a href="/signup">Sign Up</a></div>
+        <div><a href="/login">Log In</a></div>
+    `;
+    res.send(html);
+    return;
+    // }
 // else {
 //     var html =`
 //      Hello, ${req.session.name} !
@@ -71,7 +71,7 @@ app.get('/', (req,res) => {
 //     res.send(html);
 //     return;
 // }   
-// });
+});
 
 app.get('/nosql-injection', async (req,res) => {
 	var username = req.query.user;

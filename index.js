@@ -80,7 +80,6 @@ else {
     var html =`
      Hello, ${username} !
      <div><a href="/members">Members Page</a></div>
-     <div><a href="/logout">Log Out</a></div>
     `;
     res.send(html);
     return;
@@ -240,12 +239,18 @@ app.get('/members', async (req,res) => {
     }
    console.log(req.session);
     const username = req.session.username;
-    res.send(`<h1>Hello ${username}</h1>`);
+const images = ['1.png', '2.png', '3.png'];
+const selectedImage = images[Math.floor(Math.random() * images.length)];
 
+const html =
+`<h1>Hello ${username}</h1>
+<img src='${selectedImage}' alt='random image'>  
+<div><button><a href="/logout">Sign Out</a></button></div>
+
+`;
+res.send(html);
+      
 });
-
-
-
 
 
 app.get('/logout', (req,res) => {
@@ -261,20 +266,6 @@ app.get('/logout', (req,res) => {
 });
 });
 
-app.get('/cat/:id', (req,res) => {
-
-    var cat = req.params.id;
-
-    if (cat == 1) {
-        res.send("Fluffy: <img src='/fluffy.gif' style='width:250px;'>");
-    }
-    else if (cat == 2) {
-        res.send("Socks: <img src='/socks.gif' style='width:250px;'>");
-    }
-    else {
-        res.send("Invalid cat id: "+cat);
-    }
-});
 
 
 app.use(express.static(__dirname + "/public"));

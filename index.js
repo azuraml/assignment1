@@ -8,9 +8,11 @@ const MongoStore = require('connect-mongo');
 const bcrypt = require('bcrypt');
 const saltRounds = 12;
 const port = process.env.PORT || 3000;
+const mongoose = require('mongoose');
 const app = express();
 const Joi = require("joi");
-const expireTime = 24 * 60 * 60 * 1000; //expires after 1 day  (hours * minutes * seconds * millis)
+const expireTime = 60 * 60 * 1000; //expires after 1 day  (hours * minutes * seconds * millis)
+// const mongoURI = 'mongodb://localhost:27017/sessions'
 
 /* secret information section */
 const mongodb_host = process.env.MONGODB_HOST;
@@ -34,9 +36,28 @@ var mongoStore = MongoStore.create({
 	}
 })
 
+
+
+// mongoose
+//     .connect(mongoURI, {
+//     useNewUrlParser: true,
+//     iseCreateIndex: true,
+//     useUnifiedTopology: true
+// })
+//     .then(res => {
+//         console.log('MongoDB Connected');
+//     });
+
+// const store = new mongoDBSession({
+//     uri: mongoURI,
+//     collection: 'mySessions',
+
+// });   
+
 app.use(session({ 
     secret: node_session_secret,
 	store: mongoStore,  
+// store: store,
 	saveUninitialized: false, 
 	resave: false
 }
@@ -58,13 +79,16 @@ else {
     const username = req.session.username;
     var html =`
      Hello, ${username} !
-     <div><a href="/members">Members</a></div>
+     <div><a href="/members">Members Page</a></div>
      <div><a href="/logout">Log Out</a></div>
     `;
     res.send(html);
     return;
 }   
 });
+
+
+
 
 app.get('/nosql-injection', async (req,res) => {
 	var username = req.query.user;
@@ -200,7 +224,7 @@ app.post('/loggingin', async (req,res) => {
 		req.session.username = username;
 		req.session.cookie.maxAge = expireTime;
 
-		res.redirect('/loggedIn');
+		res.redirect('/members');
 		return;
 	}
 	else {
@@ -210,15 +234,14 @@ app.post('/loggingin', async (req,res) => {
 	}
 });
 
-app.get('/loggedin', async (req,res) => {
+app.get('/members', async (req,res) => {
     if (!req.session.authenticated) {
         res.redirect('/login');
     }
-   
-    console.log(req.session);
+   console.log(req.session);
     const username = req.session.username;
-
     res.send(`<h1>Hello ${username}</h1>`);
+
 });
 
 

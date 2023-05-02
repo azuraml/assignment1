@@ -101,16 +101,16 @@ app.post('/submitUser', async (req,res) => {
 
     let err = "";
     if (!username) {
-        err += "Please enter your Name.";
+        err += "Please enter your Name.  <br> <a href='/signup'>Try again</a>";
     }
     if (!email) {
-        err += "Please enter your Email.";
+        err += "Please enter your Email.  <br> <a href='/signup'>Try again</a>";
     }
     if (!password) {
-        err += "Please enter your Password.";
+        err += "Please enter your Password. <br> <a href='/signup'>Try again</a>";
     }
     if (err !== "") {
-        err += "<a href='/signup>Try again</a>";
+        err += "<a href='/signup'></a>";
         res.send(err);
         return;
     }

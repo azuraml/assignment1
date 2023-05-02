@@ -21,54 +21,55 @@ const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 const node_session_secret = process.env.NODE_SESSION_SECRET;
 /* END secret section */
 
-var {database} = include('databaseConnection');
+var { database } = include('databaseConnection');
 
 const userCollection = database.db(mongodb_database).collection('users');
 
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({ extended: false }));
 
 var mongoStore = MongoStore.create({
-	mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/sessions`,
-	crypto: {
-		secret: mongodb_session_secret
-	}
+    mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@${mongodb_host}/sessions`,
+    crypto: {
+        secret: mongodb_session_secret
+    }
 })
 
-   
 
-app.use(session({ 
+
+app.use(session({
     secret: node_session_secret,
-	store: mongoStore,  
-	saveUninitialized: false, 
-	resave: false
+    store: mongoStore,
+    saveUninitialized: false,
+    resave: false
 }
 ));
 
-app.get('/', (req,res) => {
+app.get('/', async (req, res) => {
     if (!req.session.authenticated) {
         var html = `
         Welcome
         <div><a href="/signup">Sign Up</a></div>
         <div><a href="/login">Log In</a></div>
     `;
-    res.send(html);
-    return;
+        res.send(html);
+        return;
     }
-else {
-     req.session.isAuth = true;
-    console.log(req.session);
-    const username = req.session.username;
-    var html =`
-     Hello, ${username} !
-     <div><a href="/members">Members Page</a></div>
-    `;
-    res.send(html);
-    return;
-}   
+    else {
+        req.session.isAuth = true;
+        console.log(req.session);
+        var name = await userCollection.find({ email: req.session.email }).project({}).toArray();
+
+        const html =
+        `<h1>Hello ${name[0].username} !</h1>   
+        <div>Go to <a href="/members">Members Page</a></div>
+        `;
+        res.send(html);
+        return;
+    }
 });
 
 
-app.get('/signup', (req,res) => {
+app.get('/signup', (req, res) => {
     var html = `
     Sign Up
     <form action='/submitUser' method='post'>
@@ -82,7 +83,7 @@ app.get('/signup', (req,res) => {
 });
 
 
-app.get('/login', (req,res) => {
+app.get('/login', (req, res) => {
     var html = `
     log in
     <form action='/loggingin' method='post'>
@@ -94,7 +95,7 @@ app.get('/login', (req,res) => {
     res.send(html);
 });
 
-app.post('/submitUser', async (req,res) => {
+app.post('/submitUser', async (req, res) => {
     var username = req.body.username;
     var email = req.body.email;
     var password = req.body.password;
@@ -116,113 +117,111 @@ app.post('/submitUser', async (req,res) => {
     }
 
 
-	const schema = Joi.object(
-		{
-			username: Joi.string().alphanum().max(20).required(),
+    const schema = Joi.object(
+        {
+            username: Joi.string().alphanum().max(20).required(),
             email: Joi.string().email().required(),
-			password: Joi.string().max(20).required()
-		});
-	
-	const validationResult = schema.validate({username, email, password});
-	if (validationResult.error != null) {
-	   console.log(validationResult.error);
-	   res.redirect("/signup");
-	   return;
-   }
+            password: Joi.string().max(20).required()
+        });
+
+    const validationResult = schema.validate({ username, email, password });
+    if (validationResult.error != null) {
+        console.log(validationResult.error);
+        res.redirect("/signup");
+        return;
+    }
 
     var hashedPassword = await bcrypt.hash(password, saltRounds);
-	
-	await userCollection.insertOne({username: username, email: email, password: hashedPassword});
-	console.log("Inserted user");
 
-    var html =  `successfully created user         
+    await userCollection.insertOne({ username: username, email: email, password: hashedPassword });
+    console.log("Inserted user");
+
+    var html = `successfully created user         
     <div><a href="/login">Log In</a></div>
     `;
     res.send(html);
 });
 
-app.post('/loggingin', async (req,res) => {
+app.post('/loggingin', async (req, res) => {
     var email = req.body.email;
     var password = req.body.password;
 
-	const schema = Joi.string().email().required();
-	const validationResult = schema.validate(email);
-	if (validationResult.error != null) {
-	   console.log(validationResult.error);
-	   res.redirect("/login");
-	   return;
-	}
+    const schema = Joi.string().email().required();
+    const validationResult = schema.validate(email);
+    if (validationResult.error != null) {
+        console.log(validationResult.error);
+        res.redirect("/login");
+        return;
+    }
 
-	const result = await userCollection.find({email: email}).project({email: 1, password:1, _id: 1}).toArray();
+    const result = await userCollection.find({ email: email }).project({ email: 1, password: 1, _id: 1 }).toArray();
 
-	console.log(result);
-	if (result.length != 1) {
-		console.log("user not found");
-		res.redirect("/login?error-user-not-found");
-		return;
-	}
-	if (await bcrypt.compare(password, result[0].password)) {
-		console.log("correct password");
-		req.session.authenticated = true;
-		req.session.email = email;
-		req.session.cookie.maxAge = expireTime;
+    console.log(result);
+    if (result.length != 1) {
+        console.log("user not found");
+        res.redirect("/login?error-user-not-found");
+        return;
+    }
+    if (await bcrypt.compare(password, result[0].password)) {
+        console.log("correct password");
+        req.session.authenticated = true;
+        req.session.email = email;
+        req.session.cookie.maxAge = expireTime;
 
-		res.redirect('/members');
-		return;
-	}
-	else {
-		console.log("incorrect password");
-		res.send("Incorrect password, <a href='/login'>Try again</a>");
-		return;
-	}
+        res.redirect('/members');
+        return;
+    }
+    else {
+        console.log("incorrect password");
+        res.send("Incorrect password, <a href='/login'>Try again</a>");
+        return;
+    }
 });
 
-app.get('/members', async (req,res) => {
+app.get('/members', async (req, res) => {
     if (!req.session.authenticated) {
         res.redirect('/');
         return;
     }
 
-//    console.log(req.session);
-//     const email = req.session.email;
-var name = await userCollection.find({email:req.session.email}).project({}).toArray();
+    var name = await userCollection.find({ email: req.session.email }).project({}).toArray();
 
     const images = ['1.png', '2.png', '3.png'];
-const selectedImage = images[Math.floor(Math.random() * images.length)];
+    const selectedImage = images[Math.floor(Math.random() * images.length)];
 
-const html =
-`<h1>Hello ${name[0].username}</h1>
+    const html =
+        `<h1>Hello ${name[0].username}</h1>
 <img src='${selectedImage}' alt='random image'>  
 <div><button><a href="/logout">Sign Out</a></button></div>
 
 `;
-res.send(html);
-      
+    res.send(html);
+
 });
 
 
-app.get('/logout', (req,res) => {
+app.get('/logout', (req, res) => {
 
-	req.session.destroy((err) => {
-    if (err) {
-        console.log(err);
-    }
-    var html = `
+    req.session.destroy((err) => {
+        if (err) {
+            console.log(err);
+        }
+        var html = `
     <p> You are logged out! <p>  <div><a href="/">Home</a></div>
     `;
-    res.send(html);
-});
+        res.send(html);
+    });
 });
 
 
 
 app.use(express.static(__dirname + "/public"));
 
-app.get("*", (req,res) => {
-	res.status(404);
-	res.send("Page not found - 404");
+app.get("*", (req, res) => {
+    res.status(404);
+    res.send("Page not found - 404");
 })
 
 app.listen(port, () => {
-	console.log("Node application listening on port "+port);
+    console.log("Node application listening on port " + port);
 }); 

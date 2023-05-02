@@ -202,10 +202,7 @@ app.get('/members', async (req, res) => {
 
 app.get('/logout', (req, res) => {
 
-    req.session.destroy((err) => {
-        if (err) {
-            console.log(err);
-        }
+    req.session.destroy();
         var html = `
     <p> You are logged out! <p>  
     <div><button><a href="/">Home</a></button></div>
@@ -213,7 +210,6 @@ app.get('/logout', (req, res) => {
     `;
         res.send(html);
     });
-});
 
 
 

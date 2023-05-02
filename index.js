@@ -103,16 +103,16 @@ app.post('/submitUser', async (req, res) => {
 
     let err = "";
     if (!username) {
-        err += "Please enter your Name.  <br> <a href='/signup'>Try again</a>";
+        err += "Please enter your Name.  <br> ";
     }
     if (!email) {
-        err += "Please enter your Email.  <br> <a href='/signup'>Try again</a>";
+        err += "Please enter your Email.  <br> ";
     }
     if (!password) {
-        err += "Please enter your Password. <br> <a href='/signup'>Try again</a>";
+        err += "Please enter your Password. <br> ";
     }
     if (err !== "") {
-        err += "<a href='/signup'></a>";
+        err += "<a href='/signup'>Try again</a>";
         res.send(err);
         return;
     }
@@ -138,7 +138,7 @@ app.post('/submitUser', async (req, res) => {
     console.log("Inserted user");
 
     var html = `successfully created user         
-    <div><a href="/login">Log In</a></div>
+    <button><div><a href="/login">Log In</a></div><button>
     `;
     res.send(html);
 });
@@ -191,11 +191,10 @@ app.get('/members', async (req, res) => {
     const selectedImage = images[Math.floor(Math.random() * images.length)];
 
     const html =
-        `<h1>Hello ${name[0].username}</h1>
-<img src='${selectedImage}' alt='random image'>  
-<div><button><a href="/logout">Sign Out</a></button></div>
-
-`;
+    `<h1>Hello ${name[0].username}</h1>
+    <img src='${selectedImage}' alt='random image'>  
+    <div><button><a href="/logout">Sign Out</a></button></div>
+    `;
     res.send(html);
 
 });

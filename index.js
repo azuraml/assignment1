@@ -48,8 +48,8 @@ app.get('/', async (req, res) => {
     if (!req.session.authenticated) {
         var html = `
         Welcome
-        <div><a href="/signup">Sign Up</a></div>
-        <div><a href="/login">Log In</a></div>
+        <div><button><a href="/signup">Sign Up</a></button></div>
+        <div><button><a href="/login">Log In</a></button></div>
     `;
         res.send(html);
         return;
@@ -61,7 +61,8 @@ app.get('/', async (req, res) => {
 
         const html =
         `<h1>Hello ${name[0].username} !</h1>   
-        <div>Go to <a href="/members">Members Page</a></div>
+        <div><button><a href="/members">Members Page</a></button></div>
+        <div><button><a href="/logout">Log out</a></button></div>
         `;
         res.send(html);
         return;
@@ -207,7 +208,9 @@ app.get('/logout', (req, res) => {
             console.log(err);
         }
         var html = `
-    <p> You are logged out! <p>  <div><a href="/">Home</a></div>
+    <p> You are logged out! <p>  
+    <div><button><a href="/">Home</a></button></div>
+
     `;
         res.send(html);
     });

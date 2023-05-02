@@ -138,7 +138,7 @@ app.post('/submitUser', async (req, res) => {
     console.log("Inserted user");
 
     var html = `successfully created user         
-    <div><button><a href="/login">Log In</a><button></div>
+    <div><button><a href='/login'>Log In</a></button></div>
     `;
     res.send(html);
 });
